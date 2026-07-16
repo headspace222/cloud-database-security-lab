@@ -38,23 +38,23 @@ Azure SQL Database's free offer, generally available since 2025, provides up to 
 Evidence of the free database, the security configuration, and the authentication tests actually working, captured against a live Azure subscription during this build. Files live in docs/screenshots/.
 
 1. Free Database Created
-Image: docs/screenshots/01-free-database-created.png
+![Free database created](docs/screenshots/01-free-database-created.png)
 The SQL database shown Online, with the free offer confirmed directly on the Overview page: Pricing tier Free General Purpose Serverless, and the full 100,000 vCore seconds remaining for the month.
 
 2. Security Baseline Configured
-Image: docs/screenshots/02-security-configured.png
+![Security baseline configured](docs/screenshots/02-security-configured.png)
 The Entra admin set, Entra-only authentication confirmed enabled, and a firewall rule scoped to exactly one known IP address, all verified in one script run.
 
 3. SQL Authentication Rejected
-Image: docs/screenshots/03-sql-auth-rejected.png
+![SQL authentication rejected](docs/screenshots/03-sql-auth-rejected.png)
 A connection attempt using a fabricated SQL username and password, rejected with the precise reason stated directly by the server: Azure Active Directory only authentication is enabled. Not a generic failure, an explicit structural rejection.
 
 4. Entra Authentication Succeeds
-Image: docs/screenshots/04-entra-auth-succeeds.png
+![Entra authentication succeeds](docs/screenshots/04-entra-auth-succeeds.png)
 The same server, connected successfully via Microsoft Entra ID, after working through a genuine tenant-routing issue with a guest account and landing on Azure CLI authentication as the reliable path.
 
 5. Audit Configuration Confirmed
-Image: docs/screenshots/05-audit-configuration-confirmed.png
+![Audit configuration confirmed](docs/screenshots/05-audit-configuration-confirmed.png)
 Audit logging enabled and correctly pointed at the shared observability workspace, reached only after diagnosing a tag-policy conflict across three different tools and resolving it via a targeted Azure CLI policy exemption.
 
 ## Conclusion
@@ -72,23 +72,23 @@ Ten projects, one throughline: real Azure resources, built on genuinely free-tie
 Evidence of the free database, the security configuration, and the authentication tests actually working, captured against a live Azure subscription during this build. Files live in docs/screenshots/.
 
 1. Free Database Created
-Image: docs/screenshots/01-free-database-created.png
+![Free database created](docs/screenshots/01-free-database-created.png)
 The SQL database shown Online, with the free offer confirmed directly on the Overview page: Pricing tier Free General Purpose Serverless, and the full 100,000 vCore seconds remaining for the month.
 
 2. Security Baseline Configured
-Image: docs/screenshots/02-security-configured.png
+![Security baseline configured](docs/screenshots/02-security-configured.png)
 The Entra admin set, Entra-only authentication confirmed enabled, and a firewall rule scoped to exactly one known IP address, all verified in one script run.
 
 3. SQL Authentication Rejected
-Image: docs/screenshots/03-sql-auth-rejected.png
+![SQL authentication rejected](docs/screenshots/03-sql-auth-rejected.png)
 A connection attempt using a fabricated SQL username and password, rejected with the precise reason stated directly by the server: Azure Active Directory only authentication is enabled. Not a generic failure, an explicit structural rejection.
 
 4. Entra Authentication Succeeds
-Image: docs/screenshots/04-entra-auth-succeeds.png
+![Entra authentication succeeds](docs/screenshots/04-entra-auth-succeeds.png)
 The same server, connected successfully via Microsoft Entra ID, after working through a genuine tenant-routing issue with a guest account and landing on Azure CLI authentication as the reliable path.
 
 5. Audit Configuration Confirmed
-Image: docs/screenshots/05-audit-configuration-confirmed.png
+![Audit configuration confirmed](docs/screenshots/05-audit-configuration-confirmed.png)
 Audit logging enabled and correctly pointed at the shared observability workspace, reached only after diagnosing a tag-policy conflict across three different tools and resolving it via a targeted Azure CLI policy exemption.
 
 ## Conclusion
