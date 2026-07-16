@@ -16,26 +16,26 @@ Azure SQL Database's free offer, generally available since 2025, provides up to 
 
 | Control | Configuration | Why It Matters |
 |---|---|---|
-| Authentication | Microsoft Entra ID only - SQL authentication disabled entirely | Removes an entire credential class from the attack surface, not just a weaker option left available alongside a stronger one |
-| Network access | Firewall rule restricted to a single known client IP | Denies connections from anywhere else by default, rather than relying on authentication alone |
-| Auditing | Enabled, sent to this portfolio's shared Log Analytics workspace | Every login attempt becomes queryable alongside every other resource's logs, not isolated in its own silo |
-| Encryption at rest | Transparent Data Encryption, enabled by default | Confirmed directly rather than assumed |
+| Authentication | Microsoft Entra ID only - SQL authentication disabled entirely | Removes an entire credential class from the attack surface, not just a weaker option left available alongside a stronger one. |
+| Network access | Firewall rule restricted to a single known client IP | Denies connections from anywhere else by default, rather than relying on authentication alone. |
+| Auditing | Enabled, sent to this portfolio's shared Log Analytics workspace. | Every login attempt becomes queryable alongside every other resource's logs, not isolated in its own silo. |
+| Encryption at rest | Transparent Data Encryption, enabled by default. | Confirmed directly rather than assumed. |
 
 ## What's Included
 
 | File | Purpose |
 |---|---|
-| `scripts/configure-security.ps1` | Configures the Entra admin, Entra-only authentication, and a restrictive firewall rule |
-| `docs/architecture.md` | Full design rationale, including every genuine obstacle encountered and how each was resolved |
-| `docs/architecture-diagram.md` | Visual diagram of the authentication and audit flow |
-| `docs/setup-guide.md` | Complete reproduction steps with screenshot evidence points |
-| `docs/screenshots/` | Evidence that Entra-only authentication genuinely rejects SQL logins and accepts Entra ID |
+| `scripts/configure-security.ps1` | Configures the Entra admin, Entra-only authentication, and a restrictive firewall rule. |
+| `docs/architecture.md` | Full design rationale, including every genuine obstacle encountered and how each was resolved. |
+| `docs/architecture-diagram.md` | Visual diagram of the authentication and audit flow. |
+| `docs/setup-guide.md` | Complete reproduction steps with screenshot evidence points. |
+| `docs/screenshots/` | Evidence that Entra-only authentication genuinely rejects SQL logins and accepts Entra ID. |
 
 ## Cost
 
-- The database itself: free, permanently, within the monthly 100,000 vCore-second and 32GB allowance
-- Entra-only authentication, firewall rules, and Transparent Data Encryption: configuration only, no additional cost
-- Auditing to Log Analytics: covered by the same always-free monthly ingestion grant used throughout this portfolio
+- The database itself: free, permanently, within the monthly 100,000 vCore-second and 32GB allowance.
+- Entra-only authentication, firewall rules, and Transparent Data Encryption: configuration only, no additional cost.
+- Auditing to Log Analytics: covered by the same always-free monthly ingestion grant used throughout this portfolio.
 
 ## Skills Demonstrated
 
@@ -60,23 +60,33 @@ Azure SQL Database's free offer, generally available since 2025, provides up to 
 Evidence of the free database, the security configuration, and the authentication tests actually working, captured against a live Azure subscription during this build.
 
 **1. Free Database Created**
+
 ![Free database created](docs/screenshots/01-free-database-created.png)
+
 The SQL database shown Online, with the free offer confirmed directly on the Overview page - Free General Purpose Serverless tier, and the full 100,000 vCore-seconds remaining for the month.
 
 **2. Security Baseline Configured**
+
 ![Security baseline configured](docs/screenshots/02-security-configured.png)
+
 The Entra admin set, Entra-only authentication confirmed enabled, and a firewall rule scoped to exactly one known IP address - all verified in a single script run.
 
 **3. SQL Authentication Rejected**
+
 ![SQL authentication rejected](docs/screenshots/03-sql-auth-rejected.png)
+
 A connection attempt using a fabricated SQL username and password, rejected with the precise reason stated directly by the server: Azure Active Directory only authentication is enabled. An explicit structural rejection, not a generic failure.
 
 **4. Entra Authentication Succeeds**
+
 ![Entra authentication succeeds](docs/screenshots/04-entra-auth-succeeds.png)
+
 The same server, connected successfully via Microsoft Entra ID, after working through a genuine tenant-routing issue affecting a guest account and landing on Azure CLI authentication as the reliable path.
 
 **5. Audit Configuration Confirmed**
+
 ![Audit configuration confirmed](docs/screenshots/05-audit-configuration-confirmed.png)
+
 Audit logging enabled and correctly pointed at the shared observability workspace, reached only after diagnosing a tag-policy conflict across three different tools and resolving it with a targeted Azure CLI policy exemption.
 
 ## Setup Guide
@@ -91,7 +101,7 @@ The build also produced this portfolio's most involved troubleshooting arc: a gu
 
 Not every thread was tied off. Live query verification of audit data in the shared workspace was not achieved, despite confirmed-correct configuration, and that limitation is stated as plainly as every success. A portfolio built entirely from clean successes would be a less honest, and less useful, one than this.
 
-Ten projects, one throughline: real Azure resources, built on genuinely free-tier services, with the actual obstacles encountered documented rather than edited out.
+
 
 ## Author
 
