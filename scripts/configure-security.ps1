@@ -49,24 +49,30 @@ param(
     [string]$WorkspaceResourceId
 )
 
+$script:HadFailure = $false
+
+function Report-Error {
+    param([string]$Message)
+    $script:HadFailure = $true
+    Write-Host "  [FAILED] $Message" -ForegroundColor Red
+}
+
 Write-Host "Step 1: Setting Microsoft Entra administrator for the server ..." -ForegroundColor Cyan
 try {
     Set-AzSqlServerActiveDirectoryAdministrator -ResourceGroupName $ResourceGroupName -ServerName $ServerName -DisplayName $EntraAdminDisplayName -ObjectId $EntraAdminObjectId -ErrorAction Stop
     Write-Host "  [OK] Entra admin set: $EntraAdminDisplayName" -ForegroundColor Green
 } catch {
-    Write-Host "  [FAILED] $($_.Exception.Message)" -ForegroundColor Red
+    Report-Error $_.Exception.Message
     Write-Host "  Fallback: Portal -> the SQL Server -> Microsoft Entra ID -> Set admin." -ForegroundColor Yellow
-    throw
 }
 
 Write-Host "`nStep 2: Enabling Entra-only authentication (disables SQL logins entirely) ..." -ForegroundColor Cyan
 try {
-    Set-AzSqlServerActiveDirectoryOnlyAuthentication -ResourceGroupName $ResourceGroupName -ServerName $ServerName -ErrorAction Stop
+    Enable-AzSqlServerActiveDirectoryOnlyAuthentication -ResourceGroupName $ResourceGroupName -ServerName $ServerName -ErrorAction Stop
     Write-Host "  [OK] SQL authentication disabled - Entra ID is now the only way to authenticate." -ForegroundColor Green
 } catch {
-    Write-Host "  [FAILED] $($_.Exception.Message)" -ForegroundColor Red
+    Report-Error $_.Exception.Message
     Write-Host "  Fallback: Portal -> the SQL Server -> Microsoft Entra ID -> check Support only Azure Active Directory authentication." -ForegroundColor Yellow
-    throw
 }
 
 Write-Host "`nStep 3: Adding a firewall rule for your current public IP only ..." -ForegroundColor Cyan
@@ -74,12 +80,21 @@ try {
     $myIp = (Invoke-RestMethod -Uri "https://api.ipify.org" -ErrorAction Stop).Trim()
     Write-Host "  Detected public IP: $myIp" -ForegroundColor Cyan
 
-    New-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName -FirewallRuleName "AllowMyClientIP" -StartIpAddress $myIp -EndIpAddress $myIp -ErrorAction Stop
-    Write-Host "  [OK] Firewall rule created - only $myIp can reach this server." -ForegroundColor Green
+    $existingRule = Get-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName -FirewallRuleName "AllowMyClientIP" -ErrorAction SilentlyContinue
+    if ($existingRule) {
+        if ($existingRule.StartIpAddress -eq $myIp -and $existingRule.EndIpAddress -eq $myIp) {
+            Write-Host "  [OK] Firewall rule already exists for $myIp." -ForegroundColor Green
+        } else {
+            Set-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName -FirewallRuleName "AllowMyClientIP" -StartIpAddress $myIp -EndIpAddress $myIp -ErrorAction Stop
+            Write-Host "  [OK] Firewall rule updated - only $myIp can reach this server." -ForegroundColor Green
+        }
+    } else {
+        New-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName -FirewallRuleName "AllowMyClientIP" -StartIpAddress $myIp -EndIpAddress $myIp -ErrorAction Stop
+        Write-Host "  [OK] Firewall rule created - only $myIp can reach this server." -ForegroundColor Green
+    }
 } catch {
-    Write-Host "  [FAILED] $($_.Exception.Message)" -ForegroundColor Red
+    Report-Error $_.Exception.Message
     Write-Host "  Fallback: find your IP at whatismyip.com, then Portal -> the SQL Server -> Networking -> add a firewall rule manually." -ForegroundColor Yellow
-    throw
 }
 
 if ($WorkspaceResourceId) {
@@ -88,7 +103,7 @@ if ($WorkspaceResourceId) {
         Set-AzSqlServerAudit -ResourceGroupName $ResourceGroupName -ServerName $ServerName -LogAnalyticsTargetState Enabled -WorkspaceResourceId $WorkspaceResourceId -ErrorAction Stop
         Write-Host "  [OK] Auditing enabled - login attempts and queries now flow to the shared observability workspace." -ForegroundColor Green
     } catch {
-        Write-Host "  [FAILED] $($_.Exception.Message)" -ForegroundColor Red
+        Report-Error $_.Exception.Message
         Write-Host "  Fallback: Portal -> the SQL Server -> Auditing -> Enable Azure Monitor logs -> select the workspace." -ForegroundColor Yellow
     }
 } else {
@@ -96,5 +111,28 @@ if ($WorkspaceResourceId) {
 }
 
 Write-Host "`nSetup complete. Verifying final state ..." -ForegroundColor Green
-Get-AzSqlServerActiveDirectoryOnlyAuthentication -ResourceGroupName $ResourceGroupName -ServerName $ServerName
-Get-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName
+try {
+    Get-AzSqlServerActiveDirectoryOnlyAuthentication -ResourceGroupName $ResourceGroupName -ServerName $ServerName -ErrorAction Stop | Out-Null
+    Write-Host "  [OK] Entra-only authentication setting retrieved successfully." -ForegroundColor Green
+} catch {
+    Write-Host "  [WARN] Could not verify Entra-only authentication: $($_.Exception.Message)" -ForegroundColor Yellow
+}
+
+try {
+    $firewallRules = @(Get-AzSqlServerFirewallRule -ResourceGroupName $ResourceGroupName -ServerName $ServerName -ErrorAction Stop)
+    if ($firewallRules.Count -gt 0) {
+        $firewallRules | Format-Table -AutoSize
+    } else {
+        Write-Host "  No firewall rules were returned for this server." -ForegroundColor Yellow
+    }
+} catch {
+    Write-Host "  [WARN] Could not verify firewall rules: $($_.Exception.Message)" -ForegroundColor Yellow
+}
+
+if ($script:HadFailure) {
+    Write-Host "`nScript completed with one or more failures." -ForegroundColor Yellow
+    exit 1
+}
+
+Write-Host "`nScript completed successfully." -ForegroundColor Green
+exit 0
