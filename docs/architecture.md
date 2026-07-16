@@ -30,3 +30,10 @@ Rather than provisioning a new, isolated logging destination, this lab sends SQL
 - Dynamic Data Masking and row-level security for sensitive fields
 - Automated failover groups for redundancy
 - Query Store performance monitoring feeding into the same workspace
+## A Real Finding: Guest Account Tenant Routing With Interactive Auth
+
+Proving Entra-only authentication actually worked required more than expected. The account configured as this server's Entra admin is a guest/external identity in this Azure tenant rather than a native one, and the standard interactive browser sign-in flow defaulted to routing authentication through that account's consumer home tenant rather than this specific tenant. This produced a consistent error regardless of which account was picked, and regardless of hinting the exact UPN.
+
+The reliable fix was authenticating via Azure CLI directly with an explicit tenant ID specified at login, then pointing sqlcmd at that already-authenticated CLI session using the ActiveDirectoryAzCli authentication method. This sidesteps the tenant-routing ambiguity entirely.
+
+A second finding: the modern Go-based sqlcmd uses a different flag set than the legacy ODBC-based sqlcmd most documentation assumes, and lacks a dedicated tenant-id flag, which is why the Azure CLI approach was needed at all.
