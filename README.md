@@ -67,6 +67,40 @@ Not every thread was tied off. Live query verification of audit data in the shar
 
 Ten projects, one throughline: real Azure resources, built on genuinely free-tier services, with the actual obstacles encountered documented rather than edited out.
 
+## Screenshots
+
+Evidence of the free database, the security configuration, and the authentication tests actually working, captured against a live Azure subscription during this build. Files live in docs/screenshots/.
+
+1. Free Database Created
+Image: docs/screenshots/01-free-database-created.png
+The SQL database shown Online, with the free offer confirmed directly on the Overview page: Pricing tier Free General Purpose Serverless, and the full 100,000 vCore seconds remaining for the month.
+
+2. Security Baseline Configured
+Image: docs/screenshots/02-security-configured.png
+The Entra admin set, Entra-only authentication confirmed enabled, and a firewall rule scoped to exactly one known IP address, all verified in one script run.
+
+3. SQL Authentication Rejected
+Image: docs/screenshots/03-sql-auth-rejected.png
+A connection attempt using a fabricated SQL username and password, rejected with the precise reason stated directly by the server: Azure Active Directory only authentication is enabled. Not a generic failure, an explicit structural rejection.
+
+4. Entra Authentication Succeeds
+Image: docs/screenshots/04-entra-auth-succeeds.png
+The same server, connected successfully via Microsoft Entra ID, after working through a genuine tenant-routing issue with a guest account and landing on Azure CLI authentication as the reliable path.
+
+5. Audit Configuration Confirmed
+Image: docs/screenshots/05-audit-configuration-confirmed.png
+Audit logging enabled and correctly pointed at the shared observability workspace, reached only after diagnosing a tag-policy conflict across three different tools and resolving it via a targeted Azure CLI policy exemption.
+
+## Conclusion
+
+This project set out to close a real, specific gap in this portfolio: nine earlier projects touched storage, identity, networking, and observability, but none touched an actual database. That gap is closed here, with a security posture that goes further than most database tutorials attempt: not just preferring Microsoft Entra authentication, but disabling SQL authentication entirely, proven by a genuine rejected login attempt sitting right next to a genuine accepted one.
+
+The build also produced this portfolio most involved troubleshooting arc yet, and it is worth naming plainly rather than smoothing over. A guest identity routed through the wrong tenant during interactive browser authentication, a modern rewrite of a familiar command-line tool with an unfamiliar flag set, a tag-enforcement policy catching its fifth distinct resource type across this portfolio, and a genuine bug in a specific PowerShell module version that Azure CLI did not share. Each of these was diagnosed on its own terms rather than worked around blindly, and each is documented in full in docs/architecture.md.
+
+Not every thread was tied off. Live query verification of audit data in the shared observability workspace was not achieved, despite confirmed-correct configuration, and that limitation is stated as plainly as every success in this project. A portfolio built entirely from clean successes would be a less honest one than this.
+
+Ten projects, one throughline: real Azure resources, built on genuinely free-tier services, with the actual obstacles encountered documented rather than edited out.
+
 ## Setup Guide
 
 Full steps: docs/setup-guide.md
